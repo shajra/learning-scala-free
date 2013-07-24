@@ -3,7 +3,10 @@ HTTP Free
 
 We're building out a small language to make HTTP calls where I work.  We're
 using free monads to build out this language.  Right now, it just got two
-commands, "call" and "fork."
+commands, "call" and "fork."  One motivation is to abstract away HTTP client
+libraries.  We're having some problems with our first choice, decided to
+change, and moving forward, we'd like to limit coupling.  However, it's pretty
+nice to define a custom language specialized to our needs.
 
 I've gotten permission from my employer to post this reduced version.  Consider
 it public domain (not that I'd recommend you use it as is).
