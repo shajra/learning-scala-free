@@ -12,36 +12,35 @@ case object AnotherCallType extends CallType
 
 
 object CallType {
-  val dcx: CallType = OneCallType
-  val core: CallType = AnotherCallType
+  val one: CallType = OneCallType
+  val another: CallType = AnotherCallType
 }
 
 
-object Calls {
+trait Calls {
 
-  val dcx =
-      HttpPlan.call(CallType.dcx, Endpoint("http://dcx/"), Get, Json)
+  val oneCall =
+      HttpPlan.call(CallType.one, Endpoint("http://one/"), Get, Json)
         { (i: Int) => Media(Json, i.toString) }
         { case Media(_, s) => parseInt(s).toValidationNel } _
 
-  val core =
-      HttpPlan.call(CallType.core, Endpoint("http://core/"), Get, Json)
+  val anotherCall =
+      HttpPlan.call(CallType.another, Endpoint("http://another/"), Get, Json)
         { (i: Int) => Media(Json, i.toString) }
         { case Media(_, s) => parseInt(s).toValidationNel } _
 
 }
 
 
-object Play extends App {
+object Play extends App with Calls {
 
-  val plan =
+  def plan(i: Int) =
     for {
-      a <- Calls dcx 1
-      b <- HttpPlan.fork(Calls core 2, Calls core 3) { (a, b) => (a, b) }
-      c <- HttpPlan.fork(Calls core 2, Calls core 3) { (a, b) => (a, b) }
-      d <- HttpPlan.fork(Calls core 6, Calls core 7) { (a, b) => (a, b) }
-      e <- Calls dcx 8
-    } yield (a, b, c, d, e)
+      a <- oneCall(i)
+      b <- HttpPlan.fork(anotherCall(a), anotherCall(i)) { _ - _ }
+      c <- HttpPlan.fork(anotherCall(b), anotherCall(a)) { _ - _ }
+      d <- oneCall(c)
+    } yield d
 
   val strategy: CallStrategy[CallType, NumberFormatException] =
     (cd, pool) => {
@@ -50,7 +49,7 @@ object Play extends App {
 
   import scalaz.std.list._
   import scalaz.syntax.traverse._
-  val stacking = ((1 to 300000) map Calls.dcx toList).sequenceU
+  val stacking = ((1 to 100000) map plan toList).sequenceU
 
   // QUESTION: Why doesn't this blow task.  I though the mutual recursion in
   // the "execute" interpretter would cause a problem.

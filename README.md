@@ -23,3 +23,14 @@ mood, you can submit pull requests of issues to communicate your feedback.
 
 Thanks for helping out,
 Sukant
+
+
+Running
+-------
+
+If you have a JDK installed, I put a "rebel cut" SBT script in the project
+root.  All you should have to do is:
+
+    ./sbt run
+
+to run the main application in play.scala.
